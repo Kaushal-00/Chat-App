@@ -1,0 +1,515 @@
+/* ============================================================
+   style.css - Chat Application Styles
+   ============================================================
+   This file styles the entire chat application.
+   Organized into sections:
+   1. Reset & Base Styles
+   2. Variables (CSS Custom Properties)
+   3. Layout & Container
+   4. Username Screen
+   5. Chat Window
+   6. Messages
+   7. Input Area
+   8. Animations
+   9. Responsive Design
+   ============================================================ */
+
+
+/* ============================================================
+   1. RESET & BASE STYLES
+   Removes browser default margins/paddings for consistency
+   ============================================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* Padding included in element width */
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;       /* At least full screen height */
+  display: flex;
+  justify-content: center; /* Horizontal center */
+  align-items: center;     /* Vertical center */
+  padding: 20px;
+}
+
+
+/* ============================================================
+   2. CSS CUSTOM PROPERTIES (Variables)
+   Define colors once, reuse everywhere
+   ============================================================ */
+:root {
+  --primary:    #4f8ef7;        /* Main blue color */
+  --own-msg:    #4f8ef7;        /* Own message bubble color */
+  --other-msg:  #2a2d3e;        /* Other users message color */
+  --bg-dark:    #1e2235;        /* Dark background */
+  --bg-medium:  #252840;        /* Medium background */
+  --bg-light:   #2e3256;        /* Light background */
+  --text-main:  #e8eaf6;        /* Main text color */
+  --text-muted: #8892b0;        /* Muted/secondary text */
+  --border:     #3a3f6b;        /* Border color */
+  --danger:     #ff6b6b;        /* Error/warning color */
+  --success:    #6bcb77;        /* Success color */
+  --radius:     12px;           /* Border radius for rounded corners */
+  --shadow:     0 20px 60px rgba(0,0,0,0.5); /* Box shadow */
+}
+
+
+/* ============================================================
+   3. MAIN CONTAINER
+   The white card that holds the entire chat app
+   ============================================================ */
+.chat-container {
+  width: 100%;
+  max-width: 780px;             /* Maximum width on large screens */
+  height: 90vh;                 /* 90% of screen height */
+  max-height: 680px;
+  background: var(--bg-dark);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;       /* Stack children vertically */
+  overflow: hidden;             /* Hide scrollbars outside */
+  border: 1px solid var(--border);
+}
+
+
+/* ============================================================
+   4. USERNAME ENTRY SCREEN
+   Shown when the user hasn't joined yet
+   ============================================================ */
+.username-screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 40px;
+  text-align: center;
+  background: var(--bg-dark);
+}
+
+.username-screen h1 {
+  font-size: 2.2rem;
+  color: var(--text-main);
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.username-screen .subtitle {
+  color: var(--text-muted);
+  font-size: 1rem;
+  margin-bottom: 35px;
+}
+
+.username-screen .emoji-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.join-form {
+  width: 100%;
+  max-width: 360px;
+}
+
+.join-form input {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid var(--border);
+  border-radius: 50px;          /* Pill shape */
+  background: var(--bg-medium);
+  color: var(--text-main);
+  font-size: 1rem;
+  margin-bottom: 14px;
+  outline: none;                /* Remove blue outline */
+  transition: border-color 0.3s ease;
+  text-align: center;
+}
+
+.join-form input:focus {
+  border-color: var(--primary); /* Highlight on focus */
+}
+
+.join-form input::placeholder {
+  color: var(--text-muted);
+}
+
+.btn-join {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #4f8ef7, #7c3aed);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.btn-join:hover {
+  transform: translateY(-2px);  /* Lift up on hover */
+  opacity: 0.92;
+}
+
+.btn-join:active {
+  transform: translateY(0);     /* Press down on click */
+}
+
+
+/* ============================================================
+   5. CHAT WINDOW
+   The main chat area (shown after joining)
+   ============================================================ */
+
+/* Header bar at the top of chat */
+.chat-header {
+  background: var(--bg-medium);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.chat-header .header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-title h2 {
+  color: var(--text-main);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.online-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--success);
+  border-radius: 50%;           /* Circle */
+  animation: pulse 1.5s infinite; /* Pulsing animation */
+}
+
+.chat-header .user-badge {
+  background: var(--bg-light);
+  color: var(--primary);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+}
+
+/* Messages scroll area */
+.chat-messages {
+  flex: 1;                      /* Take remaining space */
+  overflow-y: auto;             /* Scroll when messages overflow */
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg-dark);
+}
+
+/* Custom scrollbar */
+.chat-messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+/* Empty state (no messages yet) */
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 40px 20px;
+  font-size: 0.9rem;
+}
+
+.empty-state .empty-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  display: block;
+}
+
+
+/* ============================================================
+   6. MESSAGE BUBBLES
+   Styling for individual messages
+   ============================================================ */
+
+/* Wrapper aligns message left or right */
+.message-wrapper {
+  display: flex;
+  margin-bottom: 4px;
+  animation: fadeInUp 0.3s ease; /* Appear animation */
+}
+
+/* Other users: messages on LEFT */
+.message-wrapper.other {
+  justify-content: flex-start;
+}
+
+/* Your messages: messages on RIGHT */
+.message-wrapper.own {
+  justify-content: flex-end;
+}
+
+/* The bubble itself */
+.message-bubble {
+  max-width: 68%;               /* Not too wide */
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  word-break: break-word;       /* Break long words */
+}
+
+/* Other user's bubble: darker, left-aligned */
+.message-wrapper.other .message-bubble {
+  background: var(--other-msg);
+  border-bottom-left-radius: 3px; /* Flat corner pointing left */
+  border: 1px solid var(--border);
+}
+
+/* Your bubble: blue, right-aligned */
+.message-wrapper.own .message-bubble {
+  background: var(--own-msg);
+  border-bottom-right-radius: 3px; /* Flat corner pointing right */
+  background: linear-gradient(135deg, #4f8ef7, #6366f1);
+}
+
+/* Username shown above other people's messages */
+.msg-username {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 3px;
+  letter-spacing: 0.3px;
+}
+
+.message-wrapper.own .msg-username {
+  color: rgba(255,255,255,0.8);
+}
+
+/* Message text */
+.msg-text {
+  color: var(--text-main);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+/* Timestamp shown below message */
+.msg-time {
+  display: block;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.5);
+  margin-top: 5px;
+  text-align: right;
+}
+
+.message-wrapper.other .msg-time {
+  text-align: left;
+}
+
+
+/* ============================================================
+   7. MESSAGE INPUT AREA
+   Bottom area with text input and send button
+   ============================================================ */
+.chat-input-area {
+  padding: 16px 20px;
+  background: var(--bg-medium);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.chat-input-area input {
+  flex: 1;                      /* Take available space */
+  padding: 12px 18px;
+  border: 2px solid var(--border);
+  border-radius: 50px;
+  background: var(--bg-dark);
+  color: var(--text-main);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.chat-input-area input:focus {
+  border-color: var(--primary);
+}
+
+.chat-input-area input::placeholder {
+  color: var(--text-muted);
+}
+
+.chat-input-area input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-send {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;           /* Circle button */
+  background: linear-gradient(135deg, #4f8ef7, #6366f1);
+  color: white;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  flex-shrink: 0;               /* Don't shrink */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-send:hover {
+  transform: scale(1.08);
+}
+
+.btn-send:active {
+  transform: scale(0.95);
+}
+
+.btn-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* ============================================================
+   ERROR MESSAGE
+   Red message shown when something goes wrong
+   ============================================================ */
+.error-msg {
+  color: var(--danger);
+  font-size: 0.85rem;
+  margin-top: 10px;
+  padding: 8px 14px;
+  background: rgba(255, 107, 107, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  text-align: center;
+}
+
+/* Error inside chat area */
+.chat-error {
+  color: var(--danger);
+  font-size: 0.82rem;
+  padding: 6px 16px;
+  text-align: center;
+  background: rgba(255, 107, 107, 0.08);
+}
+
+
+/* ============================================================
+   8. ANIMATIONS
+   CSS keyframe animations for visual effects
+   ============================================================ */
+
+/* Fade in and slide up - for messages appearing */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pulse animation - for the online dot */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
+/* Loading dots spinner */
+.loading-dots {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.loading-dots span {
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+  animation: dotBounce 1.2s infinite;
+}
+
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotBounce {
+  0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+  40%           { transform: scale(1.2); opacity: 1; }
+}
+
+
+/* ============================================================
+   9. RESPONSIVE DESIGN
+   Makes the app look good on mobile screens too
+   ============================================================ */
+
+/* Tablet and smaller */
+@media (max-width: 768px) {
+  body {
+    padding: 0;
+    align-items: flex-end;      /* Stick to bottom on mobile */
+  }
+
+  .chat-container {
+    height: 100vh;              /* Full screen height on mobile */
+    max-height: 100vh;
+    border-radius: 0;           /* No rounded corners on mobile */
+    border: none;
+  }
+}
+
+/* Small phone screens */
+@media (max-width: 480px) {
+  .chat-header {
+    padding: 12px 16px;
+  }
+
+  .header-title h2 {
+    font-size: 0.95rem;
+  }
+
+  .username-screen {
+    padding: 30px 20px;
+  }
+
+  .username-screen h1 {
+    font-size: 1.8rem;
+  }
+
+  .message-bubble {
+    max-width: 80%;             /* Wider bubbles on small screens */
+  }
+}
