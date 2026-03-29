@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="chatApp">
+<!--
+  ============================================================
+  index.html - Main Frontend Page
+  ============================================================
+  This is the ONLY HTML page in our application (Single Page App)
+  
+  Key AngularJS attributes used here:
+  - ng-app="chatApp"         → Bootstraps AngularJS with our module
+  - ng-controller="..."      → Attaches controller to this section
+  - ng-model                 → Two-way data binding with $scope
+  - ng-click                 → Call function on button click
+  - ng-repeat                → Loop over array and create elements
+  - ng-show / ng-hide        → Show/hide elements based on condition
+  - ng-if                    → Add/remove element from DOM
+  - ng-class                 → Add CSS class based on condition
+  ============================================================
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💬 Chat App</title>
+
+  <!-- Our custom CSS styles -->
+  <link rel="stylesheet" href="style.css">
+
+  <!--
+    AngularJS from CDN (Content Delivery Network)
+    CDN = hosted on internet, no need to download
+    We use AngularJS v1.8.3 (the old AngularJS, not Angular 2+)
+  -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
+</head>
+
+<body>
+  <!--
+    ============================================================
+    MAIN CONTROLLER
+    ng-controller attaches ChatController to this div
+    Everything inside this div has access to $scope variables
+    ============================================================
+  -->
+  <div class="chat-container" ng-controller="ChatController">
+
+    <!-- ======================================================
+         SCREEN 1: USERNAME ENTRY
+         ng-hide="usernameSet" → hide this screen once user joined
+         ====================================================== -->
+    <div class="username-screen" ng-hide="usernameSet">
+
+      <span class="emoji-icon">💬</span>
+      <h1>SimpleChat</h1>
+      <p class="subtitle">Enter your name to join the conversation</p>
+
+      <!-- Join Form -->
+      <div class="join-form">
+
+        <!--
+          ng-model="username" → binds input value to $scope.username
+          auto-focus         → our custom directive (auto-focuses)
+          ng-model updates $scope.username as you type (two-way binding)
+        -->
+        <input
+          type="text"
+          ng-model="username"
+          placeholder="Your name..."
+          maxlength="30"
+          auto-focus
+          enter-key="setUsername()"
+        />
+
+        <!-- Show error if any -->
+        <p class="error-msg" ng-show="errorMsg">{{ errorMsg }}</p>
+
+        <!--
+          ng-click="setUsername()" → calls $scope.setUsername() on click
+          ng-disabled → disables button if username is empty
+        -->
+        <button
+          class="btn-join"
+          ng-click="setUsername()"
+          ng-disabled="!username.trim()"
+        >
+          Join Chat →
+        </button>
+      </div>
+    </div>
+
+
+    <!-- ======================================================
+         SCREEN 2: CHAT WINDOW
+         ng-show="usernameSet" → show only after user joined
+         ====================================================== -->
+    <div ng-show="usernameSet" style="display: flex; flex-direction: column; height: 100%;">
+
+      <!-- ---- CHAT HEADER ---- -->
+      <div class="chat-header">
+        <div class="header-title">
+          <!-- Pulsing green dot = "online" indicator -->
+          <div class="online-dot"></div>
+          <h2>💬 SimpleChat</h2>
+        </div>
+
+        <!--
+          currentUser | capitalize → uses our custom 'capitalize' filter
+          Filters transform display without changing actual data
+        -->
+        <div class="user-badge">
+          👤 {{ currentUser | capitalize }}
+        </div>
+      </div>
+
+
+      <!-- ---- MESSAGES AREA ----
+           id="chat-messages" used by JS to auto-scroll
+           flex:1 makes this take remaining vertical space -->
+      <div class="chat-messages" id="chat-messages">
+
+        <!-- Empty state: shown when no messages exist -->
+        <div class="empty-state" ng-if="messages.length === 0">
+          <span class="empty-icon">🌟</span>
+          <p>No messages yet.</p>
+          <p>Be the first to say hello!</p>
+        </div>
+
+        <!--
+          ============================================================
+          ng-repeat: Loop over messages array
+          ============================================================
+          ng-repeat="msg in messages" creates one element per message
+          'msg' = current item in loop (like 'for msg in messages')
+          
+          We use our CUSTOM DIRECTIVE <chat-message> here!
+          It creates the styled message bubble component.
+          
+          message="msg"              → passes msg object to directive
+          current-user="currentUser" → passes current username
+          
+          track by msg._id → uses MongoDB _id for performance
+          (prevents re-rendering unchanged messages)
+        -->
+        <chat-message
+          ng-repeat="msg in messages track by msg._id"
+          message="msg"
+          current-user="currentUser">
+        </chat-message>
+
+      </div>
+
+      <!-- Error message inside chat area -->
+      <div class="chat-error" ng-show="errorMsg && usernameSet">
+        ⚠️ {{ errorMsg }}
+      </div>
+
+
+      <!-- ---- MESSAGE INPUT AREA ---- -->
+      <div class="chat-input-area">
+
+        <!--
+          ng-model="messageText" → binds to $scope.messageText
+          enter-key="sendMessage()" → our custom directive for Enter key
+          ng-disabled → disables input while sending (isLoading)
+        -->
+        <input
+          type="text"
+          ng-model="messageText"
+          placeholder="Type a message..."
+          maxlength="500"
+          enter-key="sendMessage()"
+          ng-disabled="isLoading"
+        />
+
+        <!--
+          ng-click="sendMessage()" → calls $scope.sendMessage()
+          ng-disabled → disabled while loading OR message is empty
+        -->
+        <button
+          class="btn-send"
+          ng-click="sendMessage()"
+          ng-disabled="isLoading || !messageText.trim()"
+          title="Send message"
+        >
+          <!-- Show loading dots OR send icon based on state -->
+          <span ng-if="isLoading">
+            <div class="loading-dots">
+              <span></span><span></span><span></span>
+            </div>
+          </span>
+          <span ng-if="!isLoading">➤</span>
+        </button>
+
+      </div>
+
+    </div>
+    <!-- End Chat Window -->
+
+  </div>
+  <!-- End Main Container -->
+
+
+  <!--
+    ============================================================
+    LOAD OUR JAVASCRIPT FILES
+    ============================================================
+    ORDER MATTERS:
+    1. app.js first → creates the module (chatApp)
+    2. service.js → registers service with module
+    3. directive.js → registers directives with module
+    4. controller.js → registers controller (uses service)
+    
+    All files must load AFTER AngularJS CDN above
+    ============================================================
+  -->
+  <script src="app.js"></script>
+  <script src="service.js"></script>
+  <script src="directive.js"></script>
+  <script src="controller.js"></script>
+
+</body>
+</html>
